@@ -1,4 +1,3 @@
-/* Full reset and layout */
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -9,20 +8,17 @@ html, body, #root {
   color: #e4e4e4;
 }
 
-/* Main container fills the screen */
-.chat-container {
+/* Overall app layout */
+.chat-app {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  width: 100vw;
-  background-color: #1e1e1e;
-  overflow: hidden;
 }
 
-/* Header */
+/* Header stays on top */
 .chat-header {
   background: #10a37f;
-  color: #ffffff;
+  color: white;
   text-align: center;
   padding: 14px;
   font-size: 1.2rem;
@@ -31,7 +27,38 @@ html, body, #root {
   flex-shrink: 0;
 }
 
-/* Message area */
+/* Below header: side-by-side layout */
+.chat-main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Sidebar (Chat History) */
+.chat-history {
+  width: 260px;
+  background-color: #181818;
+  border-right: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-history-title {
+  padding: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+/* Chat container (right side) */
+.chat-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  position: relative;
+}
+
+/* Messages area */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
@@ -55,32 +82,23 @@ html, body, #root {
   align-self: flex-end;
   background: #0d9276;
   color: #fff;
-  font-family: "Helvetica";
-
 }
 
 .chat-message.bot {
   align-self: flex-start;
   background: #2a2a2a;
   color: #e4e4e4;
-  font-family: "Helvetica";
-
 }
 
-/* Centered input section */
+/* Input bar stays at bottom */
 .chat-input-container {
-  flex-shrink: 0;
   border-top: 1px solid #2a2a2a;
   background: #1e1e1e;
-  padding: 16px 0;
+  padding: 14px;
   display: flex;
   justify-content: center;
-  position: sticky;
-  bottom: 0;
-  width: 100%;
 }
 
-/* Input centered with margin and glow */
 .chat-input {
   width: 90%;
   max-width: 800px;
@@ -111,4 +129,125 @@ html, body, #root {
 .chat-messages::-webkit-scrollbar-thumb {
   background-color: #333;
   border-radius: 4px;
+}
+
+
+/* --- Sidebar layout improvements --- */
+.chat-history {
+  width: 260px;
+  background-color: #181818;
+  border-right: 1px solid #2a2a2a;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-history-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  font-weight: 600;
+  border-bottom: 1px solid #2a2a2a;
+}
+
+.new-chat-btn {
+  background-color: #10a37f;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.new-chat-btn:hover {
+  background-color: #0b7a60;
+}
+
+/* --- Chat list --- */
+.chat-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #222;
+  transition: background 0.2s ease;
+}
+
+.chat-item:hover {
+  background-color: #222;
+}
+
+.chat-item.active {
+  background-color: #10a37f33;
+  border-left: 3px solid #10a37f;
+  font-weight: 600;
+}
+
+/* --- Sidebar Chat Management --- */
+.chat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #222;
+  transition: background 0.2s ease;
+  position: relative;
+}
+
+.chat-item:hover {
+  background-color: #222;
+}
+
+.chat-item.active {
+  background-color: #10a37f33;
+  border-left: 3px solid #10a37f;
+  font-weight: 600;
+}
+
+.chat-item-title {
+  flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Delete button (cross “×”) */
+.delete-chat-btn {
+  background: none;
+  border: none;
+  color: #888;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  margin-left: 8px;
+  opacity: 0; /* hidden by default */
+  transition: opacity 0.15s ease, color 0.2s ease;
+}
+
+.chat-item:hover .delete-chat-btn {
+  opacity: 1; /* visible on hover */
+}
+
+.delete-chat-btn:hover {
+  color: #ff4c4c;
+}
+
+/* Edit input style (unchanged) */
+.edit-chat-input {
+  flex: 1;
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #10a37f;
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 0.9rem;
+  outline: none;
 }
