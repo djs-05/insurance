@@ -251,3 +251,14 @@ html, body, #root {
   font-size: 0.9rem;
   outline: none;
 }
+
+.chat-message.bot.typing::after {
+  content: "|";
+  animation: blink 1s infinite;
+  margin-left: 3px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
