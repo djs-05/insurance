@@ -10,16 +10,115 @@ function App() {
   const [editingChatId, setEditingChatId] = useState(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false); // ✅ New state
+  const [isInfoOpen, setIsInfoOpen] = useState(false);
+
+  // Popup position & size state
+  const [popupPos, setPopupPos] = useState({ left: 0, top: 0 });
+  const [popupSize, setPopupSize] = useState({ width: 360, height: 220 });
+
+  const popupRef = useRef(null);
+  const draggingRef = useRef({ active: false, offsetX: 0, offsetY: 0 });
+  const resizingRef = useRef({ active: false, startX: 0, startY: 0, startW: 0, startH: 0 });
 
   const messagesEndRef = useRef(null);
   const activeChat = chats.find((chat) => chat.id === activeChatId);
+
+  // center the popup when it opens
+  useEffect(() => {
+    if (isInfoOpen) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const width = popupSize.width;
+      const height = popupSize.height;
+      setPopupPos({
+        left: Math.max(20, Math.round((w - width) / 2)),
+        top: Math.max(20, Math.round((h - height) / 2)),
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isInfoOpen]); // run when opening
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [activeChat?.messages]);
 
+  // Global mousemove/mouseup handlers for dragging & resizing
+  useEffect(() => {
+    function onMouseMove(e) {
+      // dragging
+      if (draggingRef.current.active) {
+        const left = e.clientX - draggingRef.current.offsetX;
+        const top = e.clientY - draggingRef.current.offsetY;
+        // optional bounds (keep popup within viewport)
+        const maxLeft = window.innerWidth - 40;
+        const maxTop = window.innerHeight - 40;
+        setPopupPos({
+          left: Math.min(Math.max(0, left), Math.max(0, maxLeft)),
+          top: Math.min(Math.max(0, top), Math.max(0, maxTop)),
+        });
+      }
+
+      // resizing
+      if (resizingRef.current.active) {
+        const dx = e.clientX - resizingRef.current.startX;
+        const dy = e.clientY - resizingRef.current.startY;
+        const newW = Math.max(220, Math.round(resizingRef.current.startW + dx));
+        const newH = Math.max(120, Math.round(resizingRef.current.startH + dy));
+        const maxW = Math.round(window.innerWidth * 0.9);
+        const maxH = Math.round(window.innerHeight * 0.8);
+        setPopupSize({
+          width: Math.min(newW, maxW),
+          height: Math.min(newH, maxH),
+        });
+      }
+    }
+
+    function onMouseUp() {
+      if (draggingRef.current.active) {
+        draggingRef.current.active = false;
+        document.body.style.userSelect = "";
+      }
+      if (resizingRef.current.active) {
+        resizingRef.current.active = false;
+        document.body.style.userSelect = "";
+      }
+    }
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+  }, []);
+
+  const handleHeaderMouseDown = (e) => {
+    // start dragging only when left mouse button
+    if (e.button !== 0) return;
+    const rect = popupRef.current.getBoundingClientRect();
+    draggingRef.current = {
+      active: true,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+    };
+    document.body.style.userSelect = "none";
+  };
+
+  const handleResizeMouseDown = (e) => {
+    if (e.button !== 0) return;
+    resizingRef.current = {
+      active: true,
+      startX: e.clientX,
+      startY: e.clientY,
+      startW: popupSize.width,
+      startH: popupSize.height,
+    };
+    document.body.style.userSelect = "none";
+    e.stopPropagation();
+  };
+
+  // Chat input enter handling & bot typing simulation (kept unchanged)
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey && input.trim() && !isBotTyping) {
       e.preventDefault();
@@ -175,7 +274,7 @@ link: [OSU](https://www.osu.edu)\n
             ))}
           </div>
 
-          {/* ✅ Info Button */}
+          {/* Info Button */}
           <button className="info-button" onClick={() => setIsInfoOpen(true)}>
             User Manual
           </button>
@@ -217,18 +316,41 @@ link: [OSU](https://www.osu.edu)\n
         </div>
       </div>
 
-      {/* ✅ Info Box */}
+      {/* Draggable + Resizable Info Box (Overlay) */}
       {isInfoOpen && (
-        <div className="info-popup">
-          <div className="info-header">
-            <button className="close-info" onClick={() => setIsInfoOpen(false)}>
-              ×
-            </button>
-          </div>
-          <div className="info-content">
-            <p>
-              This website
-            </p>
+        <div className="info-popup-overlay" onMouseDown={(e) => e.stopPropagation()}>
+          <div
+            ref={popupRef}
+            className="info-popup"
+            style={{
+              left: popupPos.left,
+              top: popupPos.top,
+              width: popupSize.width,
+              height: popupSize.height,
+            }}
+          >
+            <div className="info-header" onMouseDown={handleHeaderMouseDown}>
+              <h3 style={{ margin: 0 }}>User Manual</h3>
+              <button
+                className="close-info"
+                onClick={() => setIsInfoOpen(false)}
+                title="Close"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="info-content" style={{ overflow: "auto", height: "calc(100% - 56px)" }}>
+              <p>Hello World</p>
+            </div>
+
+            {/* Resize handle */}
+            <div
+              className="resize-handle"
+              onMouseDown={handleResizeMouseDown}
+              role="button"
+              aria-label="Resize"
+            />
           </div>
         </div>
       )}

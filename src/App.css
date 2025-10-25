@@ -263,6 +263,89 @@ html, body, #root {
   50% { opacity: 1; }
 }
 
+/* Overlay behind popup */
+.info-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  z-index: 999;
+  /* pointer-events allow clicking inside popup while dimming background */
+  display: block;
+}
+
+/* Draggable + Resizable popup */
+.info-popup {
+  position: absolute; /* left/top controlled by React inline style */
+  background: #2c2c2c;
+  border-radius: 10px;
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
+  min-width: 220px;
+  min-height: 120px;
+  max-width: 90%;
+  max-height: 80%;
+  padding: 12px;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
+}
+
+/* Header — drag area */
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 4px;
+  cursor: move; /* indicates draggable */
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  color: #fff;
+}
+
+/* Close button */
+.close-info {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: #333;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 6px;
+}
+.close-info:hover { background: rgba(0,0,0,0.06); color: #c00; }
+
+/* Content area */
+.info-content {
+  padding: 12px 8px;
+  font-size: 14px;
+  color: #fff;
+  background-color: #2f2f2f;
+}
+
+/* Resize handle (bottom-right) */
+.resize-handle {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 18px;
+  height: 18px;
+  cursor: se-resize;
+  /* visual hint: little triangle */
+  background:
+    linear-gradient(135deg, rgba(0,0,0,0.18) 25%, transparent 25%) 0 0 / 6px 6px,
+    linear-gradient(135deg, rgba(0,0,0,0.12) 25%, transparent 25%) 6px 6px / 6px 6px;
+  opacity: 0.9;
+  border-radius: 3px;
+}
+
+/* optional small fade-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+.info-popup { animation: fadeIn 0.12s ease-out; }
+
 /* Markdown table styling */
 table {
   border-collapse: collapse;
