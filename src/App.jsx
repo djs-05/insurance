@@ -1,54 +1,56 @@
-import { useState } from 'react';
-import './App.css';
+import React, { useState } from "react";
+import "./App.css";
 
 function App() {
-  const [formData, setFormData] = useState({
-    currentPlan: '',
-    zipCode: '',
-  });
+  const [input, setInput] = useState("");
+  const [stack, setStack] = useState([]);
+  const [messages, setMessages] = useState([]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey && input.trim()) {
+      e.preventDefault();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Submitted:', formData);
-    // You can add API calls or validation here
+      // Push input to stack
+      setStack((prevStack) => [...prevStack, input]);
+
+      // Add user message and bot response
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", text: input },
+        { sender: "bot", text: "Hello, World!" },
+      ]);
+
+      setInput("");
+    }
   };
 
   return (
-    <div className="form-container">
-      <h2>Enter Your Plan Info</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Current Plan:
-          <input
-            type="text"
-            name="currentPlan"
-            value={formData.currentPlan}
-            onChange={handleChange}
-            required
-          />
-        </label>
-        <label>
-          ZIP Code:
-          <input
-            type="text"
-            name="zipCode"
-            value={formData.zipCode}
-            onChange={handleChange}
-            pattern="\d{5}"
-            title="Enter a 5-digit ZIP Code"
-            required
-          />
-        </label>
-        <button type="submit">Submit</button>
-      </form>
+    <div className="chat-container">
+      <div className="chat-header">Simple Chat UI</div>
+
+      <div className="chat-messages">
+        {messages.map((msg, index) => (
+          <div
+            key={index}
+            className={`chat-message ${
+              msg.sender === "user" ? "user" : "bot"
+            }`}
+          >
+            {msg.text}
+          </div>
+        ))}
+      </div>
+
+      <div className="chat-input-container">
+        <textarea
+          className="chat-input"
+          placeholder="Type a message..."
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          rows={1}
+        />
+      </div>
     </div>
   );
 }
