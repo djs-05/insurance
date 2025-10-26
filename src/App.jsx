@@ -7,6 +7,7 @@ import { Navigation, Mousewheel } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/autoplay";
+import VerticalCarousel from "./VerticalCarousel";
 
 
 function App() {
@@ -28,36 +29,6 @@ function App() {
 
   const messagesEndRef = useRef(null);
   const activeChat = chats.find((chat) => chat.id === activeChatId);
-
-  const [squares, setSquares] = useState(["A", "B", "C", "D"]);
-  const [carouselItems] = useState(["A", "B", "C", "D", "E", "F", "G"]);
-  const [carouselNum] = useState([0]);
-
-
-  function VerticalCarousel() {
-    return (
-      <div className="vertical-carousel-container">
-        <Swiper
-          direction="vertical"
-          slidesPerView={3}         // show 6 squares at a time
-          spaceBetween={0}         // spacing between squares
-          loop={true}               // continuous loop
-          navigation={true}         // adds up/down arrows
-          modules={[Navigation, Mousewheel]}
-          className="vertical-carousel"
-          style={{ height: "700px", width: "200px" }} // adjust size
-        >
-          {carouselItems.map((item, i) => (
-            <SwiperSlide key={i}>
-              <div className="square-box">
-                {item}
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    );
-  }
 
   // center the popup when it opens
   useEffect(() => {
@@ -139,36 +110,6 @@ function App() {
       offsetY: e.clientY - rect.top,
     };
     document.body.style.userSelect = "none";
-  };
-
-  const carouselUp = () => {
-    carouselNum[0] = (carouselNum[0] + 1)%carouselItems.length;
-    updateSquare(0,carouselItems[(carouselNum[0] + 0)%carouselItems.length]);
-    updateSquare(1,carouselItems[(carouselNum[0] + 1)%carouselItems.length]);
-    updateSquare(2,carouselItems[(carouselNum[0] + 2)%carouselItems.length]);
-    updateSquare(3,carouselItems[(carouselNum[0] + 3)%carouselItems.length]);
-    updateSquare(4,carouselItems[(carouselNum[0] + 4)%carouselItems.length]);
-    updateSquare(5,carouselItems[(carouselNum[0] + 5)%carouselItems.length]);
-  };
-
-  const carouselDown = () => {
-    carouselNum = (carouselNum[0] - 1 + carouselItems.length)%carouselItems.length;
-    updateSquare(0,carouselItems[(carouselNum[0])%carouselItems.length]);
-    updateSquare(1,carouselItems[(carouselNum[0] + 1)%carouselItems.length]);
-    updateSquare(2,carouselItems[(carouselNum[0] + 2)%carouselItems.length]);
-    updateSquare(3,carouselItems[(carouselNum[0] + 3)%carouselItems.length]);
-    updateSquare(4,carouselItems[(carouselNum[0] + 4)%carouselItems.length]);
-    updateSquare(5,carouselItems[(carouselNum[0] + 5)%carouselItems.length]);
-  };
-
-  const updateSquare = (index, newContent) => {
-      setSquares((prev) => {
-      const updated = [...prev];
-      if (index >= 0 && index < updated.length) {
-        updated[index] = newContent;
-      }
-      return updated;
-    });
   };
 
   const handleResizeMouseDown = (e) => {
