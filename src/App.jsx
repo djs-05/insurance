@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import "./App.css";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Mousewheel } from "swiper/modules";
@@ -190,7 +192,15 @@ function App() {
       const userMessage = { sender: "user", text: input };
       const botMessage = { sender: "bot", text: "" };
       const fullResponse =
-        "My toaster clearly believes it's an avant-garde performance artist.";
+        `| Light  |        |            |        |         |          | Dark    |
+| ------ | ------ | ---------- | ------ | ------- | -------- | ------- |
+| Lydian | Ionian | Mixolydian | Dorian | Aeolian | Phrygian | Locrian |\n
+**bold text**\n
+link: [OSU](https://www.osu.edu)\n
+- Item 1\n
+\t- Item 2\n
+\t- Item 3\n
+`;
 
       setChats((prevChats) =>
         prevChats.map((chat) =>
