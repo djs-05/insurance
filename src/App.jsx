@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Mousewheel } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/autoplay";
+
 
 function App() {
   const [input, setInput] = useState("");
@@ -21,8 +27,35 @@ function App() {
   const messagesEndRef = useRef(null);
   const activeChat = chats.find((chat) => chat.id === activeChatId);
 
-  const plans = useState(["a","b","c","d","e","f"]);
-  var carouselNum = 0;
+  const [squares, setSquares] = useState(["A", "B", "C", "D"]);
+  const [carouselItems] = useState(["A", "B", "C", "D", "E", "F", "G"]);
+  const [carouselNum] = useState([0]);
+
+
+  function VerticalCarousel() {
+    return (
+      <div className="vertical-carousel-container">
+        <Swiper
+          direction="vertical"
+          slidesPerView={3}         // show 6 squares at a time
+          spaceBetween={0}         // spacing between squares
+          loop={true}               // continuous loop
+          navigation={true}         // adds up/down arrows
+          modules={[Navigation, Mousewheel]}
+          className="vertical-carousel"
+          style={{ height: "700px", width: "200px" }} // adjust size
+        >
+          {carouselItems.map((item, i) => (
+            <SwiperSlide key={i}>
+              <div className="square-box">
+                {item}
+              </div>
+            </SwiperSlide>
+          ))}
+        </Swiper>
+      </div>
+    );
+  }
 
   // center the popup when it opens
   useEffect(() => {
@@ -106,6 +139,36 @@ function App() {
     document.body.style.userSelect = "none";
   };
 
+  const carouselUp = () => {
+    carouselNum[0] = (carouselNum[0] + 1)%carouselItems.length;
+    updateSquare(0,carouselItems[(carouselNum[0] + 0)%carouselItems.length]);
+    updateSquare(1,carouselItems[(carouselNum[0] + 1)%carouselItems.length]);
+    updateSquare(2,carouselItems[(carouselNum[0] + 2)%carouselItems.length]);
+    updateSquare(3,carouselItems[(carouselNum[0] + 3)%carouselItems.length]);
+    updateSquare(4,carouselItems[(carouselNum[0] + 4)%carouselItems.length]);
+    updateSquare(5,carouselItems[(carouselNum[0] + 5)%carouselItems.length]);
+  };
+
+  const carouselDown = () => {
+    carouselNum = (carouselNum[0] - 1 + carouselItems.length)%carouselItems.length;
+    updateSquare(0,carouselItems[(carouselNum[0])%carouselItems.length]);
+    updateSquare(1,carouselItems[(carouselNum[0] + 1)%carouselItems.length]);
+    updateSquare(2,carouselItems[(carouselNum[0] + 2)%carouselItems.length]);
+    updateSquare(3,carouselItems[(carouselNum[0] + 3)%carouselItems.length]);
+    updateSquare(4,carouselItems[(carouselNum[0] + 4)%carouselItems.length]);
+    updateSquare(5,carouselItems[(carouselNum[0] + 5)%carouselItems.length]);
+  };
+
+  const updateSquare = (index, newContent) => {
+      setSquares((prev) => {
+      const updated = [...prev];
+      if (index >= 0 && index < updated.length) {
+        updated[index] = newContent;
+      }
+      return updated;
+    });
+  };
+
   const handleResizeMouseDown = (e) => {
     if (e.button !== 0) return;
     resizingRef.current = {
@@ -168,6 +231,27 @@ function App() {
     }
   };
 
+  function sendBotMessage(inputMessage) {
+    const botMessage = { sender: "bot", text: inputMessage };
+
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.id === activeChatId
+          ? { ...chat, messages: [...chat.messages, botMessage] }
+          : chat
+      )
+    );
+  }
+
+  const hasSentGreeting = useRef(false);
+
+useEffect(() => {
+  if (!hasSentGreeting.current) {
+    sendBotMessage("Hey there, it's nice to meet you! In order to help me determine the best health insurance for you, please tell me your age.");
+    hasSentGreeting.current = true;
+  }
+}, []);
+
   const handleNewChat = () => {
     const titles = chats.map((chat) => chat.title);
     const baseName = "New Chat";
@@ -220,17 +304,10 @@ function App() {
   // We'll render a right column that mirrors chat history and active chat messages.
   const RightColumn = () => {
     return (
-      <div className="right-column">
-        <div className="slide" id="slide1"></div>
-        <div className="slide" id="slide2"></div>
-        <div className="slide" id="slide3"></div>
-        <div className="slide" id="slide4"></div>
-        <div className="slide" id="slide5"></div>
-        <div className="slide" id="slide6"></div>
-      </div>
+      <VerticalCarousel />
     );
   };
-
+  
   return (
     <div className="chat-app">
       {/* MAIN: now a three-column layout: left = chat-history, center = chat-container, right = new right-column */}
@@ -289,21 +366,29 @@ function App() {
 
         {/* Chat area (center) */}
         <div className="chat-container">
-          <div className="chat-messages">
-            {activeChat?.messages.map((msg, index) => (
-              <div
-                key={index}
-                className={`chat-message ${msg.sender === "user" ? "user" : "bot"} ${
-                  index === activeChat.messages.length - 1 && msg.sender === "bot" && isBotTyping
-                    ? "typing"
-                    : ""
-                }`}
-              >
-                {msg.text}
-              </div>
-            ))}
+          
+          <div className="chat-messages center-bot-message">
+            {(() => {
+              // Find the last bot message
+              const lastBotMessage = [...(activeChat?.messages || [])]
+                .reverse()
+                .find((msg) => msg.sender === "bot");
+
+              return lastBotMessage ? (
+                <div
+                  className={`chat-message bot ${
+                    isBotTyping ? "typing" : ""
+                  }`}
+                >
+                  {lastBotMessage.text}
+                </div>
+              ) : (
+                <div className="chat-placeholder">No bot messages yet.</div>
+              );
+            })()}
             <div ref={messagesEndRef} />
           </div>
+
 
           <div className="chat-input-container">
             <textarea

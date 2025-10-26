@@ -61,6 +61,12 @@ html, body, #root {
   height: calc(100vh - 120px); /* allow it to stretch; tweak to fit your header/footer */
   overflow: auto;
   box-sizing: border-box;
+<<<<<<< Updated upstream
+=======
+  display: block;
+  align-items: center;
+  justify-content: center;
+>>>>>>> Stashed changes
 }
 
 /* Chat container (right side) */
@@ -90,6 +96,8 @@ html, body, #root {
   font-size: 0.95rem;
   line-height: 1.4;
   word-wrap: break-word;
+  align-items: center;
+  justify-content: center;
 }
 
 .chat-message.user {
@@ -153,6 +161,8 @@ html, body, #root {
   border-right: 1px solid #2a2a2a;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .chat-history-title {
@@ -370,3 +380,64 @@ html, body, #root {
   to { opacity: 1; transform: scale(1); }
 }
 .info-popup { animation: fadeIn 0.12s ease-out; }
+
+.square-column {
+  display: block;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.square-box:hover {
+  background-color: #2e2e2e;
+  cursor: pointer;
+}
+
+.vertical-carousel-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.vertical-carousel .swiper-slide {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.square-box {
+  width: 140px;
+  height: 140px;
+  background-color: #222;
+  color: white;
+  font-size: 1.5rem;
+  border: 2px solid #555;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.center-bot-message {
+  display: flex;
+  justify-content: center; /* horizontal centering */
+  align-items: center;     /* vertical centering */
+  height: 100%;            /* take full height of chat container */
+  text-align: center;
+}
+
+.center-bot-message .chat-message.bot {
+  max-width: 70%;
+  background-color: #f0f0f0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: #333;
+}
+
+.center-bot-message .chat-placeholder {
+  color: #888;
+  font-style: italic;
+}
