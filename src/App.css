@@ -61,12 +61,9 @@ html, body, #root {
   height: calc(100vh - 120px); /* allow it to stretch; tweak to fit your header/footer */
   overflow: auto;
   box-sizing: border-box;
-<<<<<<< Updated upstream
-=======
   display: block;
   align-items: center;
   justify-content: center;
->>>>>>> Stashed changes
 }
 
 /* Chat container (right side) */
@@ -98,6 +95,7 @@ html, body, #root {
   word-wrap: break-word;
   align-items: center;
   justify-content: center;
+  flex-direction: row;
 }
 
 .chat-message.user {
