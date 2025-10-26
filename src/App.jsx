@@ -390,7 +390,9 @@ useEffect(() => {
                     isBotTyping ? "typing" : ""
                   }`}
                 >
-                  {lastBotMessage.text}
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {lastBotMessage.text}
+                  </ReactMarkdown>
                 </div>
               ) : (
                 <div className="chat-placeholder">No bot messages yet.</div>
