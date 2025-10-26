@@ -93,19 +93,18 @@ const pollForResponse = async (uuid, maxAttempts = 150, interval = 2000) => {
   throw new Error("Polling timeout: No response received");
 };
 
-export const sendChatMessage = async (history, newMessage) => {
+export const sendChatMessage = async (newMessage, planIds) => {
   const sessionId = getSessionUUID();
 
   console.log("\n=== SEND CHAT MESSAGE ===");
   console.log("Session ID:", sessionId);
   console.log("New message:", newMessage);
-  console.log("History length:", history.length);
-  console.log("History:", JSON.stringify(history, null, 2));
+  console.log("Current plan IDs:", planIds);
 
   const postUrl = `${BASE_URL}/bot`;
   const requestBody = {
     uuid: sessionId,
-    history: history,
+    planIds: planIds,
     newMessage: newMessage,
   };
 
