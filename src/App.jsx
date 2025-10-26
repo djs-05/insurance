@@ -21,6 +21,9 @@ function App() {
   const messagesEndRef = useRef(null);
   const activeChat = chats.find((chat) => chat.id === activeChatId);
 
+  const plans = useState(["a","b","c","d","e","f"]);
+  var carouselNum = 0;
+
   // center the popup when it opens
   useEffect(() => {
     if (isInfoOpen) {
@@ -33,7 +36,7 @@ function App() {
         top: Math.max(20, Math.round((h - height) / 2)),
       });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isInfoOpen]); // run when opening
 
   // Scroll to bottom when messages change
@@ -213,12 +216,26 @@ function App() {
     }
   };
 
+  // --- New: Right column content renderer ---
+  // We'll render a right column that mirrors chat history and active chat messages.
+  const RightColumn = () => {
+    return (
+      <div className="right-column">
+        <div className="slide" id="slide1"></div>
+        <div className="slide" id="slide2"></div>
+        <div className="slide" id="slide3"></div>
+        <div className="slide" id="slide4"></div>
+        <div className="slide" id="slide5"></div>
+        <div className="slide" id="slide6"></div>
+      </div>
+    );
+  };
+
   return (
     <div className="chat-app">
-      <div className="chat-header">Simple Chat UI</div>
-
-      <div className="chat-main">
-        {/* Sidebar */}
+      {/* MAIN: now a three-column layout: left = chat-history, center = chat-container, right = new right-column */}
+      <div className="chat-main three-column">
+        {/* Sidebar (left) */}
         <div className="chat-history">
           <div className="chat-history-title">
             <span>Chat History</span>
@@ -270,7 +287,7 @@ function App() {
           </button>
         </div>
 
-        {/* Chat area */}
+        {/* Chat area (center) */}
         <div className="chat-container">
           <div className="chat-messages">
             {activeChat?.messages.map((msg, index) => (
@@ -300,6 +317,9 @@ function App() {
             />
           </div>
         </div>
+
+        {/* Right column */}
+        <RightColumn />
       </div>
 
       {/* Draggable + Resizable Info Box (Overlay) */}
@@ -327,7 +347,11 @@ function App() {
             </div>
 
             <div className="info-content" style={{ overflow: "auto", height: "calc(100% - 56px)" }}>
-              <p>Hello World</p>
+              <p>To Use:<br></br>
+              1. Briefly answer questions when prompted by the bot. <br></br>
+              2. Delete plans in the carousel if you dislike them. <br></br>
+              3. Ask questions to the bot about each plan.
+              </p>
             </div>
 
             {/* Resize handle */}

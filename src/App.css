@@ -49,6 +49,20 @@ html, body, #root {
   border-bottom: 1px solid #2a2a2a;
 }
 
+/* right column styles */
+.right-column {
+  background: #181818;
+  border-left: 1px solid #2a2a2a;
+  border: 1px solid rgba(255,255,255,0.04);
+  border-radius: 8px;
+  padding: 12px;
+  color: #e8e8e8;
+  width: 300px;
+  height: calc(100vh - 120px); /* allow it to stretch; tweak to fit your header/footer */
+  overflow: auto;
+  box-sizing: border-box;
+}
+
 /* Chat container (right side) */
 .chat-container {
   flex: 1;
@@ -134,7 +148,7 @@ html, body, #root {
 
 /* --- Sidebar layout improvements --- */
 .chat-history {
-  width: 260px;
+  width: 220px;
   background-color: #181818;
   border-right: 1px solid #2a2a2a;
   display: flex;
@@ -280,7 +294,7 @@ html, body, #root {
   background: #2c2c2c;
   border-radius: 10px;
   box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
-  min-width: 220px;
+  min-width: 400px;
   min-height: 120px;
   max-width: 90%;
   max-height: 80%;
@@ -306,14 +320,20 @@ html, body, #root {
 .close-info {
   background: none;
   border: none;
-  font-size: 1.25rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  color: #333;
+  color: #ffffff; /* pure white */
   padding: 4px 8px;
   line-height: 1;
   border-radius: 6px;
+  transition: 0.2s ease;
 }
-.close-info:hover { background: rgba(0,0,0,0.06); color: #c00; }
+
+.close-info:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff; /* stays white */
+  transform: scale(1.1);
+}
 
 /* Content area */
 .info-content {
@@ -337,6 +357,11 @@ html, body, #root {
     linear-gradient(135deg, rgba(0,0,0,0.12) 25%, transparent 25%) 6px 6px / 6px 6px;
   opacity: 0.9;
   border-radius: 3px;
+}
+
+.carousel {
+  width: 180px;
+  display: flex;
 }
 
 /* optional small fade-in */
