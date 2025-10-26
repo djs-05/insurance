@@ -1,198 +1,38 @@
 import React, { useState, useEffect, useRef } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import "./App.css";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Mousewheel } from "swiper/modules";
-import "swiper/css";
-import "swiper/css/navigation";
-import "swiper/css/autoplay";
-
+import Chat from "./components/Chat";
+import UserForm from "./components/UserForm";
+import { getPlans } from "./api";
 
 function App() {
   const [input, setInput] = useState("");
-  const [chats, setChats] = useState([{ id: 0, title: "New Chat", messages: [] }]);
-  const [activeChatId, setActiveChatId] = useState(0);
-  const [editingChatId, setEditingChatId] = useState(null);
-  const [editingTitle, setEditingTitle] = useState("");
+  const [messages, setMessages] = useState([]);
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
 
-  // Popup position & size state
-  const [popupPos, setPopupPos] = useState({ left: 0, top: 0 });
-  const [popupSize, setPopupSize] = useState({ width: 360, height: 220 });
+  const [plans, setPlans] = useState([]);
+  const [userInfo, setUserInfo] = useState(null);
+  const [showForm, setShowForm] = useState(true);
 
-  const popupRef = useRef(null);
-  const draggingRef = useRef({ active: false, offsetX: 0, offsetY: 0 });
-  const resizingRef = useRef({ active: false, startX: 0, startY: 0, startW: 0, startH: 0 });
+  const handleFormSubmit = async (formData) => {
+    setUserInfo(formData);
+    setShowForm(false);
 
-  const messagesEndRef = useRef(null);
-  const activeChat = chats.find((chat) => chat.id === activeChatId);
+    // Fetch plans with county ID
+    const fetchedPlans = await getPlans(formData.countyId);
+    console.log("Fetched plans:", fetchedPlans);
+    setPlans(fetchedPlans);
 
-  const [squares, setSquares] = useState(["A", "B", "C", "D"]);
-  const [carouselItems] = useState(["A", "B", "C", "D", "E", "F", "G"]);
-  const [carouselNum] = useState([0]);
-
-
-  function VerticalCarousel() {
-    return (
-      <div className="vertical-carousel-container">
-        <Swiper
-          direction="vertical"
-          slidesPerView={3}         // show 6 squares at a time
-          spaceBetween={0}         // spacing between squares
-          loop={true}               // continuous loop
-          navigation={true}         // adds up/down arrows
-          modules={[Navigation, Mousewheel]}
-          className="vertical-carousel"
-          style={{ height: "700px", width: "200px" }} // adjust size
-        >
-          {carouselItems.map((item, i) => (
-            <SwiperSlide key={i}>
-              <div className="square-box">
-                {item}
-              </div>
-            </SwiperSlide>
-          ))}
-        </Swiper>
-      </div>
-    );
-  }
-
-  // center the popup when it opens
-  useEffect(() => {
-    if (isInfoOpen) {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      const width = popupSize.width;
-      const height = popupSize.height;
-      setPopupPos({
-        left: Math.max(20, Math.round((w - width) / 2)),
-        top: Math.max(20, Math.round((h - height) / 2)),
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isInfoOpen]); // run when opening
-
-  // Scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [activeChat?.messages]);
-
-  // Global mousemove/mouseup handlers for dragging & resizing
-  useEffect(() => {
-    function onMouseMove(e) {
-      // dragging
-      if (draggingRef.current.active) {
-        const left = e.clientX - draggingRef.current.offsetX;
-        const top = e.clientY - draggingRef.current.offsetY;
-        // optional bounds (keep popup within viewport)
-        const maxLeft = window.innerWidth - 40;
-        const maxTop = window.innerHeight - 40;
-        setPopupPos({
-          left: Math.min(Math.max(0, left), Math.max(0, maxLeft)),
-          top: Math.min(Math.max(0, top), Math.max(0, maxTop)),
-        });
-      }
-
-      // resizing
-      if (resizingRef.current.active) {
-        const dx = e.clientX - resizingRef.current.startX;
-        const dy = e.clientY - resizingRef.current.startY;
-        const newW = Math.max(220, Math.round(resizingRef.current.startW + dx));
-        const newH = Math.max(120, Math.round(resizingRef.current.startH + dy));
-        const maxW = Math.round(window.innerWidth * 0.9);
-        const maxH = Math.round(window.innerHeight * 0.8);
-        setPopupSize({
-          width: Math.min(newW, maxW),
-          height: Math.min(newH, maxH),
-        });
-      }
-    }
-
-    function onMouseUp() {
-      if (draggingRef.current.active) {
-        draggingRef.current.active = false;
-        document.body.style.userSelect = "";
-      }
-      if (resizingRef.current.active) {
-        resizingRef.current.active = false;
-        document.body.style.userSelect = "";
-      }
-    }
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, []);
-
-  const handleHeaderMouseDown = (e) => {
-    // start dragging only when left mouse button
-    if (e.button !== 0) return;
-    const rect = popupRef.current.getBoundingClientRect();
-    draggingRef.current = {
-      active: true,
-      offsetX: e.clientX - rect.left,
-      offsetY: e.clientY - rect.top,
-    };
-    document.body.style.userSelect = "none";
+    // Send initial greeting
+    sendBotMessage(`Hello! I'm here to help you find the best insurance plans for your needs.`);
   };
 
-  const carouselUp = () => {
-    carouselNum[0] = (carouselNum[0] + 1)%carouselItems.length;
-    updateSquare(0,carouselItems[(carouselNum[0] + 0)%carouselItems.length]);
-    updateSquare(1,carouselItems[(carouselNum[0] + 1)%carouselItems.length]);
-    updateSquare(2,carouselItems[(carouselNum[0] + 2)%carouselItems.length]);
-    updateSquare(3,carouselItems[(carouselNum[0] + 3)%carouselItems.length]);
-    updateSquare(4,carouselItems[(carouselNum[0] + 4)%carouselItems.length]);
-    updateSquare(5,carouselItems[(carouselNum[0] + 5)%carouselItems.length]);
-  };
-
-  const carouselDown = () => {
-    carouselNum = (carouselNum[0] - 1 + carouselItems.length)%carouselItems.length;
-    updateSquare(0,carouselItems[(carouselNum[0])%carouselItems.length]);
-    updateSquare(1,carouselItems[(carouselNum[0] + 1)%carouselItems.length]);
-    updateSquare(2,carouselItems[(carouselNum[0] + 2)%carouselItems.length]);
-    updateSquare(3,carouselItems[(carouselNum[0] + 3)%carouselItems.length]);
-    updateSquare(4,carouselItems[(carouselNum[0] + 4)%carouselItems.length]);
-    updateSquare(5,carouselItems[(carouselNum[0] + 5)%carouselItems.length]);
-  };
-
-  const updateSquare = (index, newContent) => {
-      setSquares((prev) => {
-      const updated = [...prev];
-      if (index >= 0 && index < updated.length) {
-        updated[index] = newContent;
-      }
-      return updated;
-    });
-  };
-
-  const handleResizeMouseDown = (e) => {
-    if (e.button !== 0) return;
-    resizingRef.current = {
-      active: true,
-      startX: e.clientX,
-      startY: e.clientY,
-      startW: popupSize.width,
-      startH: popupSize.height,
-    };
-    document.body.style.userSelect = "none";
-    e.stopPropagation();
-  };
-
-  // Chat input enter handling & bot typing simulation (kept unchanged)
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey && input.trim() && !isBotTyping) {
       e.preventDefault();
 
       const userMessage = { sender: "user", text: input };
       const botMessage = { sender: "bot", text: "" };
-      const fullResponse =
-        `| Light  |        |            |        |         |          | Dark    |
+      const fullResponse = `| Light  |        |            |        |         |          | Dark    |
 | ------ | ------ | ---------- | ------ | ------- | -------- | ------- |
 | Lydian | Ionian | Mixolydian | Dorian | Aeolian | Phrygian | Locrian |\n
 **bold text**\n
@@ -202,13 +42,7 @@ link: [OSU](https://www.osu.edu)\n
 \t- Item 3\n
 `;
 
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
-          chat.id === activeChatId
-            ? { ...chat, messages: [...chat.messages, userMessage, botMessage] }
-            : chat
-        )
-      );
+      setMessages((prevMessages) => [...prevMessages, userMessage, botMessage]);
 
       setInput("");
       setIsBotTyping(true);
@@ -220,19 +54,14 @@ link: [OSU](https://www.osu.edu)\n
         index++;
         if (index <= fullResponse.length) {
           const currentText = fullResponse.slice(0, index);
-          setChats((prevChats) =>
-            prevChats.map((chat) => {
-              if (chat.id === activeChatId) {
-                const updatedMessages = [...chat.messages];
-                updatedMessages[updatedMessages.length - 1] = {
-                  sender: "bot",
-                  text: currentText,
-                };
-                return { ...chat, messages: updatedMessages };
-              }
-              return chat;
-            })
-          );
+          setMessages((prevMessages) => {
+            const updatedMessages = [...prevMessages];
+            updatedMessages[updatedMessages.length - 1] = {
+              sender: "bot",
+              text: currentText,
+            };
+            return updatedMessages;
+          });
         } else {
           clearInterval(typeInterval);
           setIsBotTyping(false);
@@ -243,224 +72,25 @@ link: [OSU](https://www.osu.edu)\n
 
   function sendBotMessage(inputMessage) {
     const botMessage = { sender: "bot", text: inputMessage };
-
-    setChats((prevChats) =>
-      prevChats.map((chat) =>
-        chat.id === activeChatId
-          ? { ...chat, messages: [...chat.messages, botMessage] }
-          : chat
-      )
-    );
+    setMessages((prevMessages) => [...prevMessages, botMessage]);
   }
 
-  const hasSentGreeting = useRef(false);
-
-useEffect(() => {
-  if (!hasSentGreeting.current) {
-    sendBotMessage("Hey there, it's nice to meet you! In order to help me determine the best health insurance for you, please tell me your age.");
-    hasSentGreeting.current = true;
-  }
-}, []);
-
-  const handleNewChat = () => {
-    const titles = chats.map((chat) => chat.title);
-    const baseName = "New Chat";
-    let newTitle = baseName;
-    let counter = 1;
-
-    while (titles.includes(newTitle)) {
-      newTitle = `${baseName} ${counter}`;
-      counter++;
-    }
-
-    const newId = Date.now();
-    const newChat = { id: newId, title: newTitle, messages: [] };
-
-    setChats([...chats, newChat]);
-    setActiveChatId(newId);
-  };
-
-  const handleSelectChat = (id) => setActiveChatId(id);
-  const handleDeleteChat = (id) => {
-    if (isBotTyping) return;
-
-    setChats((prev) => prev.filter((chat) => chat.id !== id));
-    if (id === activeChatId) {
-      setTimeout(() => {
-        const remaining = chats.filter((c) => c.id !== id);
-        if (remaining.length) setActiveChatId(remaining[0].id);
-      }, 0);
-    }
-  };
-
-  const handleEditChatTitle = (id, title) => {
-    setEditingChatId(id);
-    setEditingTitle(title);
-  };
-
-  const handleTitleKeyDown = (e, id) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      setChats((prevChats) =>
-        prevChats.map((chat) =>
-          chat.id === id ? { ...chat, title: editingTitle.trim() || "Untitled" } : chat
-        )
-      );
-      setEditingChatId(null);
-    }
-  };
-
-  // --- New: Right column content renderer ---
-  // We'll render a right column that mirrors chat history and active chat messages.
-  const RightColumn = () => {
-    return (
-      <VerticalCarousel />
-    );
-  };
-  
   return (
     <div className="chat-app">
-      {/* MAIN: now a three-column layout: left = chat-history, center = chat-container, right = new right-column */}
-      <div className="chat-main three-column">
-        {/* Sidebar (left) */}
-        <div className="chat-history">
-          <div className="chat-history-title">
-            <span>Chat History</span>
-            <button className="new-chat-btn" onClick={handleNewChat}>
-              ＋ New Chat
-            </button>
-          </div>
-
-          <div className="chat-list">
-            {chats.map((chat) => (
-              <div
-                key={chat.id}
-                className={`chat-item ${chat.id === activeChatId ? "active" : ""}`}
-              >
-                {editingChatId === chat.id ? (
-                  <input
-                    className="edit-chat-input"
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    onKeyDown={(e) => handleTitleKeyDown(e, chat.id)}
-                    onBlur={() => setEditingChatId(null)}
-                    autoFocus
-                  />
-                ) : (
-                  <div
-                    className="chat-item-title"
-                    onClick={() => handleSelectChat(chat.id)}
-                    onDoubleClick={() => handleEditChatTitle(chat.id, chat.title)}
-                  >
-                    {chat.title}
-                  </div>
-                )}
-
-                <button
-                  className="delete-chat-btn"
-                  onClick={() => handleDeleteChat(chat.id)}
-                  title="Delete chat"
-                  disabled={isBotTyping}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Info Button */}
-          <button className="info-button" onClick={() => setIsInfoOpen(true)}>
-            User Manual
-          </button>
-        </div>
-
-        {/* Chat area (center) */}
-        <div className="chat-container">
-          
-          <div className="chat-messages center-bot-message">
-            {(() => {
-              // Find the last bot message
-              const lastBotMessage = [...(activeChat?.messages || [])]
-                .reverse()
-                .find((msg) => msg.sender === "bot");
-
-              return lastBotMessage ? (
-                <div
-                  className={`chat-message bot ${
-                    isBotTyping ? "typing" : ""
-                  }`}
-                >
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {lastBotMessage.text}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <div className="chat-placeholder">No bot messages yet.</div>
-              );
-            })()}
-            <div ref={messagesEndRef} />
-          </div>
-
-
-          <div className="chat-input-container">
-            <textarea
-              className="chat-input"
-              placeholder={isBotTyping ? "Bot is typing..." : "Type a message..."}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              rows={1}
-              disabled={isBotTyping}
-            />
-          </div>
-        </div>
-
-        {/* Right column */}
-        <RightColumn />
+      <div className="chat-main">
+        {showForm ? (
+          <UserForm onSubmit={handleFormSubmit} />
+        ) : (
+          <Chat
+            messages={messages}
+            isBotTyping={isBotTyping}
+            input={input}
+            setInput={setInput}
+            handleKeyDown={handleKeyDown}
+            plansCount={plans.length}
+          />
+        )}
       </div>
-
-      {/* Draggable + Resizable Info Box (Overlay) */}
-      {isInfoOpen && (
-        <div className="info-popup-overlay" onMouseDown={(e) => e.stopPropagation()}>
-          <div
-            ref={popupRef}
-            className="info-popup"
-            style={{
-              left: popupPos.left,
-              top: popupPos.top,
-              width: popupSize.width,
-              height: popupSize.height,
-            }}
-          >
-            <div className="info-header" onMouseDown={handleHeaderMouseDown}>
-              <h3 style={{ margin: 0 }}>User Manual</h3>
-              <button
-                className="close-info"
-                onClick={() => setIsInfoOpen(false)}
-                title="Close"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="info-content" style={{ overflow: "auto", height: "calc(100% - 56px)" }}>
-              <p>To Use:<br></br>
-              1. Briefly answer questions when prompted by the bot. <br></br>
-              2. Delete plans in the carousel if you dislike them. <br></br>
-              3. Ask questions to the bot about each plan.
-              </p>
-            </div>
-
-            {/* Resize handle */}
-            <div
-              className="resize-handle"
-              onMouseDown={handleResizeMouseDown}
-              role="button"
-              aria-label="Resize"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }
