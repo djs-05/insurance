@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import "./App.css";
 import Chat from "./components/Chat";
 import UserForm from "./components/UserForm";
-import { getPlans } from "./api";
+import { getPlans, sendChatMessage } from "./api";
 
 function App() {
   const [input, setInput] = useState("");
@@ -10,11 +10,9 @@ function App() {
   const [isBotTyping, setIsBotTyping] = useState(false);
 
   const [plans, setPlans] = useState([]);
-  const [userInfo, setUserInfo] = useState(null);
   const [showForm, setShowForm] = useState(true);
 
   const handleFormSubmit = async (formData) => {
-    setUserInfo(formData);
     setShowForm(false);
 
     // Fetch plans with county ID
@@ -22,58 +20,56 @@ function App() {
     console.log("Fetched plans:", fetchedPlans);
     setPlans(fetchedPlans);
 
-    // Send initial greeting
-    sendBotMessage(`Hello! I'm here to help you find the best insurance plans for your needs.`);
+    // Send initial message to the bot with user info and plan IDs
+    const initialMessage = `I am ${formData.age} years old, ${
+      formData.sex
+    }, and live in county ${
+      formData.countyId
+    }. Current plan ids: ${JSON.stringify(fetchedPlans)}`;
+    await sendUserMessage(initialMessage);
+  };
+
+  const sendUserMessage = async (userText) => {
+    setIsBotTyping(true);
+
+    try {
+      // Convert CURRENT messages to API format (before adding the new user message)
+      const history = messages.map((msg) => ({
+        role: msg.sender === "user" ? "user" : "assistant",
+        content: msg.text,
+      }));
+
+      const response = await sendChatMessage(history, userText);
+
+      // Add both user message and bot response to state
+      const userMessage = { sender: "user", text: userText };
+      const botMessage = { sender: "bot", text: response };
+      setMessages((prevMessages) => [...prevMessages, userMessage, botMessage]);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      const userMessage = { sender: "user", text: userText };
+      const errorMessage = {
+        sender: "bot",
+        text: "Sorry, I encountered an error. Please try again.",
+      };
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        userMessage,
+        errorMessage,
+      ]);
+    } finally {
+      setIsBotTyping(false);
+    }
   };
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey && input.trim() && !isBotTyping) {
       e.preventDefault();
-
-      const userMessage = { sender: "user", text: input };
-      const botMessage = { sender: "bot", text: "" };
-      const fullResponse = `| Light  |        |            |        |         |          | Dark    |
-| ------ | ------ | ---------- | ------ | ------- | -------- | ------- |
-| Lydian | Ionian | Mixolydian | Dorian | Aeolian | Phrygian | Locrian |\n
-**bold text**\n
-link: [OSU](https://www.osu.edu)\n
-- Item 1\n
-\t- Item 2\n
-\t- Item 3\n
-`;
-
-      setMessages((prevMessages) => [...prevMessages, userMessage, botMessage]);
-
+      const userText = input;
       setInput("");
-      setIsBotTyping(true);
-
-      let index = 0;
-      const typingSpeed = 12;
-
-      const typeInterval = setInterval(() => {
-        index++;
-        if (index <= fullResponse.length) {
-          const currentText = fullResponse.slice(0, index);
-          setMessages((prevMessages) => {
-            const updatedMessages = [...prevMessages];
-            updatedMessages[updatedMessages.length - 1] = {
-              sender: "bot",
-              text: currentText,
-            };
-            return updatedMessages;
-          });
-        } else {
-          clearInterval(typeInterval);
-          setIsBotTyping(false);
-        }
-      }, typingSpeed);
+      sendUserMessage(userText);
     }
   };
-
-  function sendBotMessage(inputMessage) {
-    const botMessage = { sender: "bot", text: inputMessage };
-    setMessages((prevMessages) => [...prevMessages, botMessage]);
-  }
 
   return (
     <div className="chat-app">
